@@ -1,0 +1,23 @@
+{{ if eq (.Values.volume.class) "local-storage" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ include "immudb.fullname" . }}-pv
+spec:
+  storageClassName: {{ $.Values.volume.class }}
+  capacity:
+    storage: {{ $.Values.volume.size }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  local:
+    path: /mnt/{{ include "immudb.fullname" . }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+       - matchExpressions:
+           - key: kubernetes.io/hostname
+             operator: In
+             values:
+               - debian11.localdomain
+{{ end }}

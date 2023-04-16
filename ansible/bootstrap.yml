@@ -1,0 +1,32 @@
+- hosts: all
+  become: 'yes'
+  vars:
+    packages:
+      - curl
+      - htop
+      - bpytop
+  tasks:
+    - name: Ensure a list of packages installed
+      apt:
+        pkg: "{{ packages }}"
+        state: present
+        update_cache: true
+    - name: ensures /mnt/immudb exists
+      file: 
+        path: "/mnt/immudb"
+        state: directory
+    - name: ensures /mnt/immudb exists
+      file: 
+        path: "/mnt/immudb-replica"
+        state: directory
+    - name: ensures /mnt/grafana exists
+      file: 
+        path: "/mnt/grafana"
+        state: directory
+    - name: ensures /mnt/grafana exists
+      file: 
+        path: "/mnt/prom-server"
+        state: directory
+    - name: Post Provisioning
+      debug:
+        msg: Bootstrap finished

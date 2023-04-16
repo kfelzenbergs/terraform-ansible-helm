@@ -1,0 +1,139 @@
+- hosts: all
+  vars_files:
+    - "./vars.yml"
+  become: 'yes'
+
+  tasks:
+    - name: "Getting docker package key"
+      shell: |
+        curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - 
+  # gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+    - name: "Getting kubernetes package key"
+      shell: |
+        curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmour -o /etc/apt/trusted.gpg.d/cgoogle.gpg
+
+    - name: "Adding docker repo"
+      apt_repository:
+        repo: deb https://download.docker.com/linux/debian {{ ansible_lsb.codename }} stable
+        state: present
+
+    - name: "Adding kubernetes repo"
+      apt_repository:
+        repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
+        state: present
+
+    - name: "Update package list"
+      apt:
+        upgrade: yes
+        update_cache: yes
+
+    - name: Create containerd config file
+      file:
+        path: "/etc/modules-load.d/containerd.conf"
+        state: "touch"
+
+    - name: Add conf for containerd
+      blockinfile:
+        path: "/etc/modules-load.d/containerd.conf"
+        block: |
+              overlay
+              br_netfilter
+
+    - name: modprobe
+      shell: |
+        modprobe overlay
+        modprobe br_netfilter
+
+
+    - name: Create a empty file for kubernetes sysctl params.
+      file:
+        path: "/etc/sysctl.d/99-kubernetes-cri.conf"
+        state: "touch"
+
+    - name: Add conf for containerd
+      blockinfile:
+        path: "/etc/sysctl.d/99-kubernetes-cri.conf"
+        block: |
+              net.bridge.bridge-nf-call-iptables = 1
+              net.ipv4.ip_forward = 1
+
+    - name: Apply new settings
+      command: sysctl --system
+
+    - name: Install containerd
+      apt: 
+       name:
+         - containerd.io
+       state: present
+
+    - name: reconfigure containerd
+      shell: |
+        rm -rf /etc/containerd/config.toml
+        containerd config default | tee /etc/containerd/config.toml
+        sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
+        systemctl restart containerd
+
+    - name: disable swap
+      shell: |
+        swapoff -a
+        sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+    - name: "Installing transport-https"
+      apt: pkg=apt-transport-https state=present
+
+    - name: "Installing kubernetes"
+      apt:
+        allow-downgrade: true
+        state: present
+      with_items:
+        - kubelet=1.27.*
+        - kubeadm=1.27.*
+        - kubectl
+        - selinux-utils
+
+    - name: "Reset kubernetes"
+      shell: kubeadm reset --force
+
+    - name: "Initializing kubernetes"
+      shell: kubeadm init --pod-network-cidr={{ K8S_NETWORK }}
+
+    - name: "Configuring kubectl"
+      shell: | 
+        mkdir -p $HOME/.kube;cp /etc/kubernetes/admin.conf $HOME/.kube/config;chown $(id -u):$(id -g) $HOME/.kube/config
+        cp $HOME/.kube/config /home/vagrant/config;chown vagrant:vagrant /home/vagrant/config
+
+    - name: "Retrieve kubeconfig"
+      fetch:
+        src: /home/vagrant/config
+        dest: kubeconfig
+
+    - name: wait until k8s available
+      wait_for:
+        port: 6443
+        delay: 20
+        timeout: 60
+
+    - name: ensures /run/flannel exists
+      file: 
+        path: "/run/flannel"
+        state: directory
+
+    - name: Creating flannel config
+      copy:
+        dest: /run/flannel/subnet.env
+        content: |
+          FLANNEL_NETWORK={{ K8S_NETWORK }}
+          FLANNEL_SUBNET={{ K8S_SUBNET }}
+          FLANNEL_MTU=1450
+          FLANNEL_IPMASQ=true
+
+    - name: "Configuring kubernetes network"
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+      tags:
+        - network
+
+    - name: "Configuring single node cluster"
+      shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
+      tags:
+        - configure

@@ -1,0 +1,56 @@
+
+ _                               _ _     
+(_)                             | | |    
+ _ _ __ ___  _ __ ___  _   _  __| | |__  
+| | '_ ` _ \| '_ ` _ \| | | |/ _` | '_ \ 
+| | | | | | | | | | | | |_| | (_| | |_) |
+|_|_| |_| |_|_| |_| |_|\__,_|\__,_|_.__/ 
+
+immudb 1.4.1
+Commit  : 99e4f1ea5970177be5287da2529849cd5ee64696
+Built at: Mon, 21 Nov 2022 16:07:42 UTC
+Static  : true
+================ Config ================
+Data dir         : /var/lib/immudb
+Address          : 0.0.0.0:3322
+Metrics address  : 0.0.0.0:9497/metrics
+Sync replication : false
+Replica of       : immudb-http.codenotary.svc.cluster.local:3322
+Config file      : configs/immudb.toml
+Log format       : text
+Max recv msg size: 33554432
+Auth enabled     : true
+Dev mode         : true
+Default database : defaultdb
+Maintenance mode : false
+Synced mode      : true
+----------------------------------------
+Superadmin default credentials
+   Username      : immudb
+   Password      : immudb
+========================================
+
+immudb 2023/04/15 07:48:42 INFO: Opening database 'systemdb' {replica = true}...
+immudb 2023/04/15 07:48:42 INFO: Binary Linking up to date at '/var/lib/immudb/systemdb'
+immudb 2023/04/15 07:48:42 INFO: Reading snapshots at '/var/lib/immudb/systemdb/index/commit'...
+immudb 2023/04/15 07:48:42 INFO: Index '/var/lib/immudb/systemdb/index' {ts=2, discarded_snapshots=0} successfully loaded
+immudb 2023/04/15 07:48:42 INFO: Successfully read snapshots at '/var/lib/immudb/systemdb/index/commit'
+immudb 2023/04/15 07:48:42 INFO: Indexing in progress at '/var/lib/immudb/systemdb'
+immudb 2023/04/15 07:48:42 INFO: Database 'systemdb' {replica = true} successfully opened
+immudb 2023/04/15 07:48:42 ERROR: Error starting replication for database 'systemdb'. Reason: illegal arguments
+immudb 2023/04/15 07:48:42 INFO: Opening database 'defaultdb' {replica = true}...
+immudb 2023/04/15 07:48:42 INFO: Binary Linking up to date at '/var/lib/immudb/defaultdb'
+immudb 2023/04/15 07:48:42 INFO: Reading snapshots at '/var/lib/immudb/defaultdb/index/commit'...
+immudb 2023/04/15 07:48:42 INFO: Index '/var/lib/immudb/defaultdb/index' {ts=1, discarded_snapshots=0} successfully loaded
+immudb 2023/04/15 07:48:42 INFO: Successfully read snapshots at '/var/lib/immudb/defaultdb/index/commit'
+immudb 2023/04/15 07:48:42 INFO: Indexing in progress at '/var/lib/immudb/defaultdb'
+immudb 2023/04/15 07:48:42 INFO: Database 'defaultdb' {replica = true} successfully opened
+immudb 2023/04/15 07:48:42 ERROR: Error starting replication for database 'defaultdb'. Reason: illegal arguments
+immudb 2023/04/15 07:48:42 INFO: Started with an empty default database
+immudb 2023/04/15 07:48:42 INFO: Recovery mode. Only 'systemdb' and 'defaultdb' databases are loaded
+immudb 2023/04/15 07:48:42 INFO: Flushing index '/var/lib/immudb/systemdb/index' {ts=2, cleanup_percentage=0.00/0.00, since_cleanup=0} requested via SnapshotSince...
+immudb 2023/04/15 07:48:42 INFO: Flushing not needed at '/var/lib/immudb/systemdb/index' {ts=2, cleanup_percentage=0.00}
+immudb 2023/04/15 07:48:42 INFO: sessions guard started
+immudb 2023/04/15 07:48:42 INFO: pgsql server is running at port 5432
+immudb 2023/04/15 07:48:42 INFO: Webconsole enabled: 0.0.0.0:8080
+immudb 2023/04/15 07:48:42 INFO: Web API server enabled on 0.0.0.0:8080/api (http)
